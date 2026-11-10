@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.enterprise.apigee</groupId>
+    <artifactId>hello-world-api</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.apigee.build-plugin</groupId>
+                <artifactId>apigee-deploy-maven-plugin</artifactId>
+                <version>2.2.2</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <skip>false</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <apigee.profile>dev</apigee.profile>
+                <apigee.org>prj-npe-apix-001</apigee.org>
+                <apigee.env>dev</apigee.env>
+                <apigee.hosturl>https://apigee.googleapis.com</apigee.hosturl>
+                <apigee.authtype>oauth</apigee.authtype>
+            </properties>
+        </profile>
+        <profile>
+            <id>qa</id>
+            <properties>
+                <apigee.profile>qa</apigee.profile>
+                <apigee.org>prj-npe-apix-001</apigee.org>
+                <apigee.env>qa</apigee.env>
+                <apigee.hosturl>https://apigee.googleapis.com</apigee.hosturl>
+                <apigee.authtype>oauth</apigee.authtype>
+            </properties>
+        </profile>
+        <profile>
+            <id>uat</id>
+            <properties>
+                <apigee.profile>uat</apigee.profile>
+                <apigee.org>prj-npe-apix-001</apigee.org>
+                <apigee.env>uat</apigee.env>
+                <apigee.hosturl>https://apigee.googleapis.com</apigee.hosturl>
+                <apigee.authtype>oauth</apigee.authtype>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <apigee.profile>prod</apigee.profile>
+                <apigee.org>prj-prod-apix-001</apigee.org>
+                <apigee.env>prod</apigee.env>
+                <apigee.hosturl>https://apigee.googleapis.com</apigee.hosturl>
+                <apigee.authtype>oauth</apigee.authtype>
+            </properties>
+        </profile>
+    </profiles>
+</project>

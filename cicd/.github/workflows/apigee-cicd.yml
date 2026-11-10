@@ -1,0 +1,115 @@
+name: Apigee X CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate-lint:
+    name: Validate and Lint Apigee Proxy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install apigeelint
+        run: npm install -g apigeelint
+      - name: Run Static Code Analysis
+        run: apigeelint -s apiproxy -profile apigeex
+
+  deploy-dev:
+    name: Deploy to DEV
+    needs: validate-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Authenticate to GCP (NPE Project)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'apigee-deployer-npe@prj-npe-apix-001.iam.gserviceaccount.com'
+      - name: Set up Java & Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Deploy to Dev via Maven
+        run: |
+          BEARER_TOKEN=$(gcloud auth print-access-token)
+          mvn clean install -Pdev -Dapigee.bearer=$BEARER_TOKEN
+
+  deploy-qa:
+    name: Deploy to QA
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Authenticate to GCP (NPE Project)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'apigee-deployer-npe@prj-npe-apix-001.iam.gserviceaccount.com'
+      - name: Set up Java & Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Deploy to QA via Maven
+        run: |
+          BEARER_TOKEN=$(gcloud auth print-access-token)
+          mvn clean install -Pqa -Dapigee.bearer=$BEARER_TOKEN
+
+  deploy-uat:
+    name: Deploy to UAT
+    needs: deploy-qa
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Authenticate to GCP (NPE Project)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'apigee-deployer-npe@prj-npe-apix-001.iam.gserviceaccount.com'
+      - name: Set up Java & Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Deploy to UAT via Maven
+        run: |
+          BEARER_TOKEN=$(gcloud auth print-access-token)
+          mvn clean install -Puat -Dapigee.bearer=$BEARER_TOKEN
+
+  deploy-prod:
+    name: Deploy to PROD
+    needs: deploy-uat
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Authenticate to GCP (PROD Project)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/987654321/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'apigee-deployer-prod@prj-prod-apix-001.iam.gserviceaccount.com'
+      - name: Set up Java & Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Deploy to Prod via Maven
+        run: |
+          BEARER_TOKEN=$(gcloud auth print-access-token)
+          mvn clean install -Pprod -Dapigee.bearer=$BEARER_TOKEN
